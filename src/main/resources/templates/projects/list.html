@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Projects')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Projects')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header">
+                <div>
+                    <h2>Projects</h2>
+                    <p class="subtitle">Manage construction sites and portfolios</p>
+                </div>
+                <div class="page-actions" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')">
+                    <a class="btn btn-primary" th:href="@{/projects/new}"><i class="bi bi-plus-lg me-1"></i> New Project</a>
+                </div>
+            </div>
+            <form class="filter-bar row g-2 align-items-end" method="get" th:action="@{/projects}">
+                <div class="col-md-5">
+                    <label class="form-label">Search</label>
+                    <input type="text" class="form-control" name="search" th:value="${search}" placeholder="Name or code"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="">All statuses</option>
+                        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}" th:selected="${status == s}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-navy w-100"><i class="bi bi-search me-1"></i> Filter</button>
+                </div>
+            </form>
+            <div class="card-bf">
+                <div class="card-body-bf p-0">
+                    <div th:if="${page == null or page.content.empty}" class="empty-state">
+                        <i class="bi bi-kanban"></i>
+                        <h3>No projects found</h3>
+                        <p>Create your first project to start tracking construction progress.</p>
+                        <a class="btn btn-primary" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')" th:href="@{/projects/new}">Create Project</a>
+                    </div>
+                    <div class="table-wrap" th:unless="${page == null or page.content.empty}">
+                        <table class="table-bf">
+                            <thead>
+                            <tr>
+                                <th>Code</th><th>Name</th><th>Status</th><th>Progress</th><th>Budget</th><th>Manager</th><th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="p : ${page.content}">
+                                <td><span class="fw-700 text-navy" th:text="${p.projectCode}">CODE</span></td>
+                                <td>
+                                    <a th:href="@{/projects/{id}(id=${p.id})}" th:text="${p.name}">Name</a>
+                                    <div class="small text-muted-bf" th:text="${p.location}">Loc</div>
+                                </td>
+                                <td><span class="badge-status badge-navy" th:text="${p.status}">STATUS</span></td>
+                                <td style="min-width:120px">
+                                    <div class="progress-label"><span th:text="${p.progressPercentage} + '%'">0%</span></div>
+                                    <div class="progress-bf"><div class="bar" th:style="'width:' + ${p.progressPercentage} + '%'"></div></div>
+                                </td>
+                                <td th:text="${p.budget != null ? #numbers.formatDecimal(p.budget,1,'COMMA',2,'POINT') : '—'}">0</td>
+                                <td th:text="${p.manager != null ? p.manager.fullName : '—'}">Mgr</td>
+                                <td class="actions">
+                                    <a class="btn btn-sm btn-ghost btn-icon" th:href="@{/projects/{id}(id=${p.id})}" title="View"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-sm btn-ghost btn-icon" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')" th:href="@{/projects/{id}/edit(id=${p.id})}" title="Edit"><i class="bi bi-pencil"></i></a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer-bf" th:if="${page != null and !page.content.empty}">
+                    <div th:replace="~{fragments/layout :: pagination(${page})}"></div>
+                </div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

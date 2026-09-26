@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Low Stock')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Low Stock')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header">
+                <div><h2>Low stock materials</h2>
+                    <p class="subtitle"><span th:text="${lowStockCount}">0</span> items need attention</p></div>
+                <a class="btn btn-ghost" th:href="@{/materials}">All materials</a>
+            </div>
+            <div class="card-bf"><div class="card-body-bf p-0">
+                <div th:if="${page == null or page.content.empty}" class="empty-state"><i class="bi bi-emoji-smile"></i><h3>Stock levels look healthy</h3></div>
+                <div class="table-wrap" th:unless="${page == null or page.content.empty}">
+                    <table class="table-bf">
+                        <thead><tr><th>Code</th><th>Name</th><th>Qty</th><th>Reorder</th><th>Supplier</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="m : ${page.content}">
+                            <td th:text="${m.materialCode}"></td>
+                            <td th:text="${m.name}"></td>
+                            <td><span class="badge-status badge-warning" th:text="${m.currentQuantity} + ' ' + ${m.unit}"></span></td>
+                            <td th:text="${m.reorderLevel}"></td>
+                            <td th:text="${m.supplier != null ? m.supplier.name : '—'}"></td>
+                            <td class="actions"><a class="btn btn-sm btn-primary" th:href="@{/materials/{id}(id=${m.id})}">Adjust</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer-bf" th:if="${page != null and !page.content.empty}"><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

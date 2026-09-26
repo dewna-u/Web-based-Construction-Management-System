@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" role="img" aria-labelledby="title desc">
+  <title id="title">BuildFlow construction site</title>
+  <desc id="desc">Stylized construction site with crane, building frame, and sky in navy and orange</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0B1F3A"/>
+      <stop offset="55%" stop-color="#163A66"/>
+      <stop offset="100%" stop-color="#1E4D7B"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2A2A2A"/>
+      <stop offset="100%" stop-color="#1A1A1A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#sky)"/>
+  <!-- distant hills -->
+  <path d="M0 320 Q200 260 400 300 T800 280 T1200 310 L1200 480 L0 480 Z" fill="#0E2A4A" opacity="0.85"/>
+  <!-- ground -->
+  <rect y="360" width="1200" height="120" fill="url(#ground)"/>
+  <rect y="360" width="1200" height="8" fill="#E87722"/>
+  <!-- building frame -->
+  <g stroke="#D6E4F5" stroke-width="4" fill="none" opacity="0.9">
+    <rect x="420" y="140" width="280" height="220"/>
+    <line x1="420" y1="195" x2="700" y2="195"/>
+    <line x1="420" y1="250" x2="700" y2="250"/>
+    <line x1="420" y1="305" x2="700" y2="305"/>
+    <line x1="490" y1="140" x2="490" y2="360"/>
+    <line x1="560" y1="140" x2="560" y2="360"/>
+    <line x1="630" y1="140" x2="630" y2="360"/>
+  </g>
+  <!-- orange accent panels -->
+  <rect x="430" y="150" width="50" height="35" fill="#E87722" opacity="0.85"/>
+  <rect x="570" y="260" width="50" height="35" fill="#E87722" opacity="0.7"/>
+  <!-- crane mast -->
+  <g stroke="#F4F7FB" stroke-width="6" stroke-linecap="round">
+    <line x1="820" y1="360" x2="820" y2="80"/>
+    <line x1="820" y1="80" x2="1040" y2="80"/>
+    <line x1="820" y1="110" x2="980" y2="80"/>
+    <line x1="980" y1="80" x2="980" y2="200"/>
+  </g>
+  <!-- crane hook block -->
+  <rect x="968" y="200" width="24" height="28" rx="2" fill="#E87722"/>
+  <line x1="980" y1="228" x2="980" y2="250" stroke="#E87722" stroke-width="3"/>
+  <!-- site hut -->
+  <rect x="140" y="290" width="120" height="70" fill="#163A66" stroke="#E87722" stroke-width="3"/>
+  <polygon points="140,290 200,250 260,290" fill="#E87722"/>
+  <rect x="185" y="320" width="30" height="40" fill="#0B1F3A"/>
+  <!-- cones -->
+  <polygon points="320,360 335,300 350,360" fill="#E87722"/>
+  <rect x="318" y="358" width="34" height="6" fill="#F4F7FB"/>
+  <polygon points="1080,360 1095,310 1110,360" fill="#E87722"/>
+  <rect x="1078" y="358" width="34" height="6" fill="#F4F7FB"/>
+  <!-- sun / accent circle -->
+  <circle cx="160" cy="90" r="36" fill="#E87722" opacity="0.9"/>
+  <circle cx="160" cy="90" r="22" fill="#FFB347" opacity="0.85"/>
+</svg>

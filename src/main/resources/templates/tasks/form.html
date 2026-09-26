@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Tasks')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Tasks')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header">
+                <div><h2 th:text="${pageTitle}">Task</h2></div>
+                <a class="btn btn-ghost" th:href="@{/tasks}">Back</a>
+            </div>
+            <div class="card-bf"><div class="card-body-bf">
+                <form th:object="${taskForm}"
+                      th:action="${taskForm.id == null} ? @{/tasks} : @{/tasks/{id}(id=${taskForm.id})}"
+                      method="post" novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" th:field="*{id}"/>
+                    <div th:if="${#fields.hasGlobalErrors()}" class="alert-bf error mb-3">
+                        <div><p class="mb-0" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p></div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Title *</label>
+                            <input class="form-control" th:field="*{title}" th:classappend="${#fields.hasErrors('title')} ? ' is-invalid'"/>
+                            <div class="field-error" th:errors="*{title}"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Project *</label>
+                            <select class="form-select" th:field="*{projectId}">
+                                <option value="">Select</option>
+                                <option th:each="p : ${projects}" th:value="${p.id}" th:text="${p.name}"></option>
+                            </select>
+                            <div class="field-error" th:errors="*{projectId}"></div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" rows="3" th:field="*{description}"></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Assignee</label>
+                            <select class="form-select" th:field="*{assigneeId}">
+                                <option value="">Unassigned</option>
+                                <option th:each="a : ${assignees}" th:value="${a.id}" th:text="${a.fullName}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Priority *</label>
+                            <select class="form-select" th:field="*{priority}">
+                                <option th:each="pr : ${priorities}" th:value="${pr}" th:text="${pr}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Status *</label>
+                            <select class="form-select" th:field="*{status}">
+                                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Start date</label>
+                            <input type="date" class="form-control" th:field="*{startDate}"/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Due date</label>
+                            <input type="date" class="form-control" th:field="*{dueDate}"/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Completion %</label>
+                            <input type="number" min="0" max="100" class="form-control" th:field="*{completionPercentage}"/>
+                            <div class="field-error" th:errors="*{completionPercentage}"></div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" rows="2" th:field="*{notes}"></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Save Task</button>
+                        <a class="btn btn-ghost" th:href="@{/tasks}">Cancel</a>
+                    </div>
+                </form>
+            </div></div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

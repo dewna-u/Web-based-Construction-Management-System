@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Milestones')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Milestones')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header">
+                <div>
+                    <h2>Milestones</h2>
+                    <p class="subtitle" th:if="${project != null}">For project <span th:text="${project.name}"></span></p>
+                    <p class="subtitle" th:unless="${project != null}">Track delivery checkpoints across projects</p>
+                </div>
+                <div class="page-actions" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER')">
+                    <a class="btn btn-primary" th:href="${projectId != null} ? @{/projects/{id}/milestones/new(id=${projectId})} : @{/milestones/new}">
+                        <i class="bi bi-plus-lg me-1"></i> New Milestone
+                    </a>
+                </div>
+            </div>
+            <form class="filter-bar row g-2 align-items-end" method="get" th:action="@{/milestones}">
+                <div class="col-md-8">
+                    <label class="form-label">Project</label>
+                    <select class="form-select" name="projectId">
+                        <option value="">All projects</option>
+                        <option th:each="p : ${projects}" th:value="${p.id}" th:text="${p.name}" th:selected="${projectId == p.id}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4"><button class="btn btn-navy w-100" type="submit">Filter</button></div>
+            </form>
+            <div class="card-bf">
+                <div class="card-body-bf p-0">
+                    <div th:if="${page == null or page.content.empty}" class="empty-state">
+                        <i class="bi bi-flag"></i><h3>No milestones</h3>
+                    </div>
+                    <div class="table-wrap" th:unless="${page == null or page.content.empty}">
+                        <table class="table-bf">
+                            <thead><tr><th>Title</th><th>Project</th><th>Due</th><th>Status</th><th></th></tr></thead>
+                            <tbody>
+                            <tr th:each="m : ${page.content}">
+                                <td th:text="${m.title}"></td>
+                                <td th:text="${m.project != null ? m.project.name : '—'}"></td>
+                                <td th:text="${m.dueDate}"></td>
+                                <td><span class="badge-status badge-secondary" th:text="${m.status}"></span></td>
+                                <td class="actions">
+                                    <a class="btn btn-sm btn-ghost btn-icon" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER')" th:href="@{/milestones/{id}/edit(id=${m.id})}"><i class="bi bi-pencil"></i></a>
+                                    <form class="inline-form" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER')" th:action="@{/milestones/{id}/complete(id=${m.id})}" method="post">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button class="btn btn-sm btn-ghost btn-icon" title="Complete"><i class="bi bi-check2-circle"></i></button>
+                                    </form>
+                                    <form class="inline-form" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')" th:action="@{/milestones/{id}/delete(id=${m.id})}" method="post" data-confirm="Delete this milestone?">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button class="btn btn-sm btn-danger-soft btn-icon"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer-bf" th:if="${page != null and !page.content.empty}">
+                    <div th:replace="~{fragments/layout :: pagination(${page})}"></div>
+                </div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

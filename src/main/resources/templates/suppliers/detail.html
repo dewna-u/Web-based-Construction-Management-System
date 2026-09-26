@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Suppliers')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Suppliers')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="detail-hero">
+                <h1 th:text="${supplier.name}">Supplier</h1>
+                <div class="meta">
+                    <span th:text="${supplier.contactPerson}"></span>
+                    <span class="badge-status badge-primary" th:text="${supplier.active} ? 'Active' : 'Inactive'"></span>
+                </div>
+                <div class="hero-actions" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')">
+                    <a class="btn btn-primary btn-sm" th:href="@{/suppliers/{id}/edit(id=${supplier.id})}">Edit</a>
+                    <form class="inline-form" th:if="${!supplier.active}" th:action="@{/suppliers/{id}/activate(id=${supplier.id})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button class="btn btn-ghost btn-sm text-white border-light">Activate</button>
+                    </form>
+                    <form class="inline-form" th:if="${supplier.active}" th:action="@{/suppliers/{id}/deactivate(id=${supplier.id})}" method="post" data-confirm="Deactivate supplier?">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button class="btn btn-ghost btn-sm text-white border-light">Deactivate</button>
+                    </form>
+                    <form class="inline-form" sec:authorize="hasRole('ADMIN')" th:action="@{/suppliers/{id}/delete(id=${supplier.id})}" method="post" data-confirm="Delete supplier?">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button class="btn btn-danger-soft btn-sm">Delete</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-bf"><div class="card-body-bf">
+                <div class="info-grid">
+                    <div class="info-item"><label>Phone</label><div class="value" th:text="${supplier.phone != null ? supplier.phone : '—'}"></div></div>
+                    <div class="info-item"><label>Email</label><div class="value" th:text="${supplier.email != null ? supplier.email : '—'}"></div></div>
+                    <div class="info-item"><label>Address</label><div class="value" th:text="${supplier.address != null ? supplier.address : '—'}"></div></div>
+                    <div class="info-item"><label>Linked user</label><div class="value" th:text="${supplier.linkedUser != null ? supplier.linkedUser.fullName : '—'}"></div></div>
+                </div>
+            </div></div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

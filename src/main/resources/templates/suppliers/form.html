@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Suppliers')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Suppliers')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header"><div><h2 th:text="${pageTitle}">Supplier</h2></div><a class="btn btn-ghost" th:href="@{/suppliers}">Back</a></div>
+            <div class="card-bf"><div class="card-body-bf">
+                <form th:object="${supplierForm}" th:action="${supplierForm.id == null} ? @{/suppliers} : @{/suppliers/{id}(id=${supplierForm.id})}" method="post" novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/><input type="hidden" th:field="*{id}"/>
+                    <div th:if="${#fields.hasGlobalErrors()}" class="alert-bf error mb-3"><div><p class="mb-0" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p></div></div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Name *</label><input class="form-control" th:field="*{name}"/><div class="field-error" th:errors="*{name}"></div></div>
+                        <div class="col-md-6"><label class="form-label">Contact person</label><input class="form-control" th:field="*{contactPerson}"/></div>
+                        <div class="col-md-4"><label class="form-label">Phone</label><input class="form-control" th:field="*{phone}"/></div>
+                        <div class="col-md-4"><label class="form-label">Email</label><input class="form-control" th:field="*{email}"/><div class="field-error" th:errors="*{email}"></div></div>
+                        <div class="col-md-4"><label class="form-label">Linked user</label>
+                            <select class="form-select" th:field="*{linkedUserId}"><option value="">None</option>
+                                <option th:each="u : ${linkableUsers}" th:value="${u.id}" th:text="${u.fullName}"></option></select></div>
+                        <div class="col-12"><label class="form-label">Address</label><textarea class="form-control" rows="2" th:field="*{address}"></textarea></div>
+                        <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" th:field="*{active}" id="active"/><label class="form-check-label" for="active">Active</label></div></div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2"><button class="btn btn-primary" type="submit">Save Supplier</button><a class="btn btn-ghost" th:href="@{/suppliers}">Cancel</a></div>
+                </form>
+            </div></div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

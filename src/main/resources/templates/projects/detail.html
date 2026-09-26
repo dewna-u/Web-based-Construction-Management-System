@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Projects')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Projects')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="detail-hero">
+                <div class="d-flex flex-wrap justify-content-between gap-3">
+                    <div>
+                        <span class="badge-status badge-primary mb-2" th:text="${project.projectCode}">CODE</span>
+                        <h1 th:text="${project.name}">Project</h1>
+                        <div class="meta">
+                            <span><i class="bi bi-geo-alt"></i><span th:text="${project.location} ?: 'No location'">Loc</span></span>
+                            <span><i class="bi bi-flag"></i><span th:text="${project.status}">STATUS</span></span>
+                            <span><i class="bi bi-person"></i><span th:text="${project.manager != null ? project.manager.fullName : 'Unassigned'}">Mgr</span></span>
+                            <span><i class="bi bi-briefcase"></i><span th:text="${project.client != null ? project.client.fullName : '—'}">Client</span></span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="small opacity-75">Progress</div>
+                        <div style="font-size:2rem;font-weight:800" th:text="${project.progressPercentage} + '%'">0%</div>
+                    </div>
+                </div>
+                <div class="hero-actions" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')">
+                    <a class="btn btn-primary btn-sm" th:href="@{/projects/{id}/edit(id=${project.id})}"><i class="bi bi-pencil me-1"></i> Edit</a>
+                    <form class="inline-form" th:action="@{/projects/{id}/archive(id=${project.id})}" method="post" th:if="${!project.archived}" data-confirm="Archive this project?">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button class="btn btn-ghost btn-sm text-white border-light">Archive</button>
+                    </form>
+                    <form class="inline-form" th:action="@{/projects/{id}/unarchive(id=${project.id})}" method="post" th:if="${project.archived}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button class="btn btn-ghost btn-sm text-white border-light">Restore</button>
+                    </form>
+                    <form class="inline-form" th:action="@{/projects/{id}/delete(id=${project.id})}" method="post" data-confirm="Permanently delete this project?">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button class="btn btn-danger-soft btn-sm">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="bi bi-cash"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Budget</div>
+                        <div class="stat-value" style="font-size:1.2rem" th:text="${project.budget != null ? #numbers.formatDecimal(project.budget,1,'COMMA',2,'POINT') : '—'}">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon warning"><i class="bi bi-receipt"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Spent</div>
+                        <div class="stat-value" style="font-size:1.2rem" th:text="${#numbers.formatDecimal(totalExpenses,1,'COMMA',2,'POINT')}">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon success"><i class="bi bi-wallet2"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Remaining</div>
+                        <div class="stat-value" style="font-size:1.2rem" th:text="${#numbers.formatDecimal(budgetRemaining,1,'COMMA',2,'POINT')}">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon navy"><i class="bi bi-pie-chart"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Budget used</div>
+                        <div class="stat-value" style="font-size:1.2rem" th:text="${budgetUsagePercentage} + '%'">0%</div>
+                        <div class="progress-bf mt-2"><div class="bar" th:style="'width:' + ${budgetUsagePercentage} + '%'"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-lg-6">
+                    <div class="card-bf">
+                        <div class="card-header-bf">
+                            <h3>Milestones</h3>
+                            <a class="btn btn-sm btn-ghost" th:href="@{/projects/{id}/milestones/new(id=${project.id})}" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER')">Add</a>
+                        </div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(milestones)}" class="empty-state py-3"><p>No milestones</p></div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(milestones)}">
+                                <li th:each="m : ${milestones}">
+                                    <div>
+                                        <div class="item-title" th:text="${m.title}">Title</div>
+                                        <div class="item-meta">Due <span th:text="${m.dueDate}">—</span></div>
+                                    </div>
+                                    <span class="badge-status badge-secondary" th:text="${m.status}">S</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf">
+                        <div class="card-header-bf">
+                            <h3>Tasks</h3>
+                            <a class="btn btn-sm btn-ghost" th:href="@{/tasks/new(projectId=${project.id})}" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER')">Add</a>
+                        </div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(tasks)}" class="empty-state py-3"><p>No tasks</p></div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(tasks)}">
+                                <li th:each="t : ${tasks}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/tasks/{id}(id=${t.id})}" th:text="${t.title}">Task</a>
+                                        <div class="item-meta" th:text="${t.status}">S</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf">
+                        <div class="card-header-bf"><h3>Issues</h3><a class="btn btn-sm btn-ghost" th:href="@{/issues/new(projectId=${project.id})}">Report</a></div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(issues)}" class="empty-state py-3"><p>No issues</p></div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(issues)}">
+                                <li th:each="i : ${issues}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/issues/{id}(id=${i.id})}" th:text="${i.title}">Issue</a>
+                                        <div class="item-meta" th:text="${i.severity}"></div>
+                                    </div>
+                                    <span class="badge-status badge-warning" th:text="${i.status}"></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf">
+                        <div class="card-header-bf"><h3>Workforce</h3><a class="btn btn-sm btn-ghost" th:href="@{/workforce(projectId=${project.id})}">View</a></div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(workers)}" class="empty-state py-3"><p>No workers assigned</p></div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(workers)}">
+                                <li th:each="w : ${workers}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/workforce/{id}(id=${w.id})}" th:text="${w.fullName}">Worker</a>
+                                        <div class="item-meta" th:text="${w.tradeSkill}">Skill</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf">
+                        <div class="card-header-bf"><h3>Progress updates</h3><a class="btn btn-sm btn-ghost" th:href="@{/progress/new(projectId=${project.id})}">Add</a></div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(progressUpdates)}" class="empty-state py-3"><p>No updates</p></div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(progressUpdates)}">
+                                <li th:each="u : ${progressUpdates}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/progress/{id}(id=${u.id})}" th:text="${u.summary}">Summary</a>
+                                        <div class="item-meta" th:text="${u.updateDate} + ' · ' + ${u.progressPercentage} + '%'"></div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf">
+                        <div class="card-header-bf"><h3>Material requests</h3><a class="btn btn-sm btn-ghost" th:href="@{/material-requests/new(projectId=${project.id})}">Request</a></div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(materialRequests)}" class="empty-state py-3"><p>No requests</p></div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(materialRequests)}">
+                                <li th:each="r : ${materialRequests}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/material-requests/{id}(id=${r.id})}"
+                                           th:text="${r.material != null ? r.material.name : 'Request'}">Req</a>
+                                        <div class="item-meta" th:text="${r.quantity} + ' · ' + ${r.status}"></div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card-bf">
+                        <div class="card-header-bf"><h3>Recent expenses</h3><a class="btn btn-sm btn-ghost" th:href="@{/expenses(projectId=${project.id})}">All</a></div>
+                        <div class="card-body-bf p-0">
+                            <div th:if="${#lists.isEmpty(expenses)}" class="empty-state py-3"><p>No expenses</p></div>
+                            <div class="table-wrap" th:unless="${#lists.isEmpty(expenses)}">
+                                <table class="table-bf">
+                                    <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr></thead>
+                                    <tbody>
+                                    <tr th:each="e,iter : ${expenses}" th:if="${iter.index &lt; 8}">
+                                        <td th:text="${e.expenseDate}"></td>
+                                        <td th:text="${e.category}"></td>
+                                        <td th:text="${e.description}"></td>
+                                        <td th:text="${#numbers.formatDecimal(e.amount,1,'COMMA',2,'POINT')}"></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

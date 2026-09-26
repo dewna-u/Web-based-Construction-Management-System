@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Profile')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Profile')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header">
+                <div>
+                    <h2>My profile</h2>
+                    <p class="subtitle">
+                        <span th:text="${user.fullName}"></span> ·
+                        <span class="badge-status badge-navy" th:text="${user.role.displayName}"></span>
+                    </p>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-lg-6">
+                    <div class="card-bf"><div class="card-body-bf">
+                        <h3 class="form-section-title">Account details</h3>
+                        <form th:object="${profileForm}" th:action="@{/profile}" method="post" novalidate>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <div th:if="${#fields.hasGlobalErrors()}" class="alert-bf error mb-3"><div><p class="mb-0" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p></div></div>
+                            <div class="mb-3"><label class="form-label">Full name *</label>
+                                <input class="form-control" th:field="*{fullName}"/><div class="field-error" th:errors="*{fullName}"></div></div>
+                            <div class="mb-3"><label class="form-label">Email *</label>
+                                <input class="form-control" th:field="*{email}"/><div class="field-error" th:errors="*{email}"></div></div>
+                            <button class="btn btn-primary" type="submit">Update profile</button>
+                        </form>
+                    </div></div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf"><div class="card-body-bf">
+                        <h3 class="form-section-title">Change password</h3>
+                        <form th:object="${changePasswordForm}" th:action="@{/profile/password}" method="post" novalidate>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <div th:if="${#fields.hasGlobalErrors()}" class="alert-bf error mb-3"><div><p class="mb-0" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p></div></div>
+                            <div class="mb-3"><label class="form-label">Current password *</label>
+                                <input type="password" class="form-control" th:field="*{currentPassword}"/><div class="field-error" th:errors="*{currentPassword}"></div></div>
+                            <div class="mb-3"><label class="form-label">New password *</label>
+                                <input type="password" class="form-control" th:field="*{newPassword}"/><div class="field-error" th:errors="*{newPassword}"></div>
+                                <ul class="password-hints"><li><i class="bi bi-check2"></i> At least 8 characters</li></ul></div>
+                            <div class="mb-3"><label class="form-label">Confirm new password *</label>
+                                <input type="password" class="form-control" th:field="*{confirmPassword}"/>
+                                <div class="field-error" th:errors="*{confirmPassword}"></div>
+                                <div class="field-error" th:errors="*{passwordConfirmed}"></div></div>
+                            <button class="btn btn-navy" type="submit">Change password</button>
+                        </form>
+                    </div></div>
+                </div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

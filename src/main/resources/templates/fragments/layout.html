@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- HEAD -->
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${pageTitle} + ' · BuildFlow'">BuildFlow</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap-icons/1.11.3/font/bootstrap-icons.css}"/>
+    <link rel="stylesheet" th:href="@{/css/app.css}"/>
+</head>
+
+<!-- SIDEBAR -->
+<aside th:fragment="sidebar" class="sidebar" id="appSidebar">
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-icon"><i class="bi bi-buildings"></i></div>
+        <div class="sidebar-brand-text">
+            <span class="brand-name">BuildFlow</span>
+            <span class="brand-tag">Construction CMS</span>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Main</div>
+        <a class="sidebar-link" th:href="@{/dashboard}"
+           th:classappend="${#strings.contains(currentPath,'/dashboard')} ? ' active'">
+            <i class="bi bi-speedometer2"></i><span class="nav-label">Dashboard</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/projects}"
+           th:classappend="${#strings.contains(currentPath,'/projects')} ? ' active'">
+            <i class="bi bi-kanban"></i><span class="nav-label">Projects</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/tasks}"
+           th:classappend="${#strings.contains(currentPath,'/tasks')} ? ' active'">
+            <i class="bi bi-check2-square"></i><span class="nav-label">Tasks</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/workforce}"
+           th:classappend="${#strings.contains(currentPath,'/workforce')} ? ' active'">
+            <i class="bi bi-people"></i><span class="nav-label">Workforce</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/attendance}"
+           th:classappend="${#strings.contains(currentPath,'/attendance')} ? ' active'">
+            <i class="bi bi-calendar-check"></i><span class="nav-label">Attendance</span>
+        </a>
+
+        <div class="sidebar-section-label">Materials</div>
+        <a class="sidebar-link" th:href="@{/materials}"
+           th:classappend="${currentPath != null and #strings.contains(currentPath, '/materials') and !#strings.contains(currentPath, '/material-requests')} ? ' active'">
+            <i class="bi bi-box-seam"></i><span class="nav-label">Materials</span>
+        </a>
+        <a class="sidebar-link sub" th:href="@{/suppliers}"
+           th:classappend="${#strings.contains(currentPath,'/suppliers')} ? ' active'">
+            <i class="bi bi-truck"></i><span class="nav-label">Suppliers</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/material-requests}"
+           th:classappend="${#strings.contains(currentPath,'/material-requests')} ? ' active'">
+            <i class="bi bi-clipboard-check"></i><span class="nav-label">Material Requests</span>
+        </a>
+
+        <div class="sidebar-section-label">Operations</div>
+        <a class="sidebar-link" th:href="@{/expenses}"
+           th:classappend="${#strings.contains(currentPath,'/expenses')} ? ' active'">
+            <i class="bi bi-cash-stack"></i><span class="nav-label">Budget / Expenses</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/progress}"
+           th:classappend="${#strings.contains(currentPath,'/progress')} ? ' active'">
+            <i class="bi bi-graph-up-arrow"></i><span class="nav-label">Progress Updates</span>
+        </a>
+        <a class="sidebar-link" th:href="@{/issues}"
+           th:classappend="${#strings.contains(currentPath,'/issues')} ? ' active'">
+            <i class="bi bi-exclamation-triangle"></i><span class="nav-label">Issues</span>
+        </a>
+
+        <div class="sidebar-section-label" sec:authorize="hasRole('ADMIN')">Admin</div>
+        <a class="sidebar-link" th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')"
+           th:classappend="${#strings.contains(currentPath,'/admin/users')} ? ' active'">
+            <i class="bi bi-shield-lock"></i><span class="nav-label">Users (Admin)</span>
+        </a>
+
+        <div class="sidebar-section-label">Account</div>
+        <a class="sidebar-link" th:href="@{/profile}"
+           th:classappend="${#strings.contains(currentPath,'/profile')} ? ' active'">
+            <i class="bi bi-person-circle"></i><span class="nav-label">Profile</span>
+        </a>
+        <form th:action="@{/logout}" method="post" class="m-0">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="sidebar-link w-100 border-0 bg-transparent text-start">
+                <i class="bi bi-box-arrow-right"></i><span class="nav-label">Logout</span>
+            </button>
+        </form>
+    </nav>
+</aside>
+
+<!-- NAVBAR -->
+<header th:fragment="navbar(pageTitle)" class="top-navbar">
+    <div class="top-navbar-left">
+        <button type="button" class="btn-sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+            <i class="bi bi-list"></i>
+        </button>
+        <div class="page-heading">
+            <h1 th:text="${pageTitle}">Page</h1>
+            <nav class="breadcrumb-bar" aria-label="breadcrumb">
+                <a th:href="@{/dashboard}">Home</a>
+                <span> / </span>
+                <span th:text="${pageTitle}">Page</span>
+            </nav>
+        </div>
+    </div>
+    <div class="top-navbar-right">
+        <span class="role-badge" sec:authorize="isAuthenticated()"
+              th:text="${#authentication.principal.user.role.displayName}">Role</span>
+        <a class="notif-btn" th:href="@{/notifications}" title="Notifications">
+            <i class="bi bi-bell"></i>
+            <span class="badge-dot" th:if="${unreadCount != null and unreadCount > 0}"
+                  th:text="${unreadCount}">0</span>
+        </a>
+        <div class="dropdown" sec:authorize="isAuthenticated()">
+            <button class="user-dropdown-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                    aria-expanded="false">
+                <span class="user-avatar"
+                      th:text="${#strings.substring(#authentication.principal.fullName,0,1)}">U</span>
+                <span class="user-name" th:text="${#authentication.principal.fullName}">User</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person me-2"></i>Profile</a></li>
+                <li><a class="dropdown-item" th:href="@{/notifications}"><i class="bi bi-bell me-2"></i>Notifications</a></li>
+                <li><hr class="dropdown-divider"/></li>
+                <li>
+                    <form th:action="@{/logout}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="dropdown-item text-danger">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+<!-- ALERTS -->
+<div th:fragment="alerts">
+    <div th:if="${successMessage}" class="alert-bf success" data-auto-dismiss="5000" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <div th:text="${successMessage}">Success</div>
+        <button type="button" class="alert-close" aria-label="Close">&times;</button>
+    </div>
+    <div th:if="${errorMessage}" class="alert-bf error" data-auto-dismiss="8000" role="alert">
+        <i class="bi bi-exclamation-octagon-fill"></i>
+        <div th:text="${errorMessage}">Error</div>
+        <button type="button" class="alert-close" aria-label="Close">&times;</button>
+    </div>
+</div>
+
+<!-- PAGINATION -->
+<nav th:fragment="pagination(page)" class="pagination-bf" th:if="${page != null and page.totalPages > 1}">
+    <div class="page-info">
+        Page <span th:text="${page.number + 1}">1</span>
+        of <span th:text="${page.totalPages}">1</span>
+        · <span th:text="${page.totalElements}">0</span> items
+    </div>
+    <div class="page-links">
+        <a th:if="${page.hasPrevious()}"
+           th:href="@{${currentPath}(page=${page.number - 1},size=${page.size})}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span th:unless="${page.hasPrevious()}" class="disabled"><i class="bi bi-chevron-left"></i></span>
+
+        <th:block th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+                  th:if="${i >= page.number - 2 and i <= page.number + 2}">
+            <span th:if="${i == page.number}" class="current" th:text="${i + 1}">1</span>
+            <a th:unless="${i == page.number}"
+               th:href="@{${currentPath}(page=${i},size=${page.size})}"
+               th:text="${i + 1}">1</a>
+        </th:block>
+
+        <a th:if="${page.hasNext()}"
+           th:href="@{${currentPath}(page=${page.number + 1},size=${page.size})}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        <span th:unless="${page.hasNext()}" class="disabled"><i class="bi bi-chevron-right"></i></span>
+    </div>
+</nav>
+
+<!-- FOOTER -->
+<footer th:fragment="footer" class="app-footer">
+    <span>&copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span>
+        BuildFlow Construction Management System</span>
+</footer>
+
+<!-- SCRIPTS -->
+<th:block th:fragment="scripts">
+    <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/webjars/chartjs/4.4.3/dist/chart.umd.js}"></script>
+    <script th:src="@{/js/app.js}"></script>
+</th:block>
+
+</html>

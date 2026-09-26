@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Dashboard')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header">
+                <div>
+                    <h2>Operations overview</h2>
+                    <p class="subtitle">
+                        Welcome back,
+                        <span sec:authentication="principal.fullName">User</span>
+                    </p>
+                </div>
+                <div class="page-actions" sec:authorize="hasRole('ADMIN')">
+                    <form th:action="@{/admin/demo-data}" method="post" data-confirm="Generate demo data? This may create sample projects and records.">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-outline-navy">
+                            <i class="bi bi-magic me-1"></i> Generate Demo Data
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="bi bi-kanban"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Active projects</div>
+                        <div class="stat-value" th:text="${activeProjects}">0</div>
+                        <div class="stat-hint"><span th:text="${totalActiveProjects}">0</span> non-archived</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon navy"><i class="bi bi-check2-square"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Tasks</div>
+                        <div class="stat-value" th:text="${totalTasks}">0</div>
+                        <div class="stat-hint text-danger" th:if="${overdueTasks > 0}">
+                            <span th:text="${overdueTasks}">0</span> overdue
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon success"><i class="bi bi-people"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Active workers</div>
+                        <div class="stat-value" th:text="${activeWorkers}">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon warning"><i class="bi bi-box-seam"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Low stock</div>
+                        <div class="stat-value" th:text="${lowStockMaterials}">0</div>
+                        <div class="stat-hint"><a th:href="@{/materials/low-stock}">View items</a></div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon info"><i class="bi bi-clipboard-check"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Pending requests</div>
+                        <div class="stat-value" th:text="${pendingRequests}">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon danger"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Open issues</div>
+                        <div class="stat-value" th:text="${openIssues}">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="bi bi-cash-stack"></i></div>
+                    <div class="stat-meta">
+                        <div class="stat-label">Total expenses</div>
+                        <div class="stat-value" style="font-size:1.25rem"
+                             th:text="${#numbers.formatDecimal(totalExpenses, 1, 'COMMA', 2, 'POINT')}">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="card-bf">
+                    <div class="card-header-bf"><h3>Tasks by status</h3></div>
+                    <div class="card-body-bf"><div class="chart-box">
+                        <canvas id="tasksChart" data-chart="doughnut"
+                                th:attr="data-labels=${tasksByStatus != null ? #strings.listJoin(tasksByStatus.keySet(), ',') : ''}"></canvas>
+                    </div></div>
+                </div>
+                <div class="card-bf">
+                    <div class="card-header-bf"><h3>Projects by status</h3></div>
+                    <div class="card-body-bf"><div class="chart-box">
+                        <canvas id="projectsChart" data-chart="bar"></canvas>
+                    </div></div>
+                </div>
+                <div class="card-bf">
+                    <div class="card-header-bf"><h3>Issues by severity</h3></div>
+                    <div class="card-body-bf"><div class="chart-box">
+                        <canvas id="issuesChart" data-chart="doughnut"></canvas>
+                    </div></div>
+                </div>
+                <div class="card-bf">
+                    <div class="card-header-bf"><h3>Budget pulse</h3></div>
+                    <div class="card-body-bf">
+                        <p class="text-muted-bf mb-3">Aggregate spend across all projects</p>
+                        <div class="stat-value text-navy mb-2"
+                             th:text="'LKR ' + ${#numbers.formatDecimal(totalExpenses, 1, 'COMMA', 2, 'POINT')}">0</div>
+                        <div class="progress-bf mb-2" style="height:12px">
+                            <div class="bar" style="width:70%"></div>
+                        </div>
+                        <p class="small text-muted-bf mb-0">Track per-project burn rate under Budget / Expenses.</p>
+                        <a class="btn btn-sm btn-outline-navy mt-3" th:href="@{/expenses}">Open expenses</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-lg-6">
+                    <div class="card-bf h-100">
+                        <div class="card-header-bf">
+                            <h3>Recent projects</h3>
+                            <a th:href="@{/projects}" class="btn btn-sm btn-ghost">View all</a>
+                        </div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(recentProjects)}" class="empty-state py-4">
+                                <i class="bi bi-kanban"></i>
+                                <h3>No projects yet</h3>
+                            </div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(recentProjects)}">
+                                <li th:each="p : ${recentProjects}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/projects/{id}(id=${p.id})}" th:text="${p.name}">Project</a>
+                                        <div class="item-meta">
+                                            <span th:text="${p.projectCode}">CODE</span> ·
+                                            <span th:text="${p.status}">STATUS</span>
+                                        </div>
+                                    </div>
+                                    <span th:text="${p.progressPercentage} + '%'">0%</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf h-100">
+                        <div class="card-header-bf">
+                            <h3>Recent tasks</h3>
+                            <a th:href="@{/tasks}" class="btn btn-sm btn-ghost">View all</a>
+                        </div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(recentTasks)}" class="empty-state py-4">
+                                <i class="bi bi-check2-square"></i>
+                                <h3>No tasks yet</h3>
+                            </div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(recentTasks)}">
+                                <li th:each="t : ${recentTasks}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/tasks/{id}(id=${t.id})}" th:text="${t.title}">Task</a>
+                                        <div class="item-meta" th:text="${t.status}">STATUS</div>
+                                    </div>
+                                    <span class="badge-status badge-secondary" th:text="${t.priority}">MED</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf h-100">
+                        <div class="card-header-bf">
+                            <h3>Overdue tasks</h3>
+                            <a th:href="@{/tasks(overdueOnly=true)}" class="btn btn-sm btn-ghost">View all</a>
+                        </div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(overdueTaskList)}" class="empty-state py-4">
+                                <i class="bi bi-emoji-smile"></i>
+                                <h3>Nothing overdue</h3>
+                            </div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(overdueTaskList)}">
+                                <li th:each="t : ${overdueTaskList}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/tasks/{id}(id=${t.id})}" th:text="${t.title}">Task</a>
+                                        <div class="item-meta">Due <span th:text="${t.dueDate}">date</span></div>
+                                    </div>
+                                    <span class="badge-status badge-danger">Overdue</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf h-100">
+                        <div class="card-header-bf">
+                            <h3>Recent issues</h3>
+                            <a th:href="@{/issues}" class="btn btn-sm btn-ghost">View all</a>
+                        </div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(recentIssues)}" class="empty-state py-4">
+                                <i class="bi bi-shield-check"></i>
+                                <h3>No issues logged</h3>
+                            </div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(recentIssues)}">
+                                <li th:each="i : ${recentIssues}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/issues/{id}(id=${i.id})}" th:text="${i.title}">Issue</a>
+                                        <div class="item-meta" th:text="${i.severity} + ' · ' + ${i.status}">meta</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf h-100">
+                        <div class="card-header-bf">
+                            <h3>Low stock materials</h3>
+                            <a th:href="@{/materials/low-stock}" class="btn btn-sm btn-ghost">View all</a>
+                        </div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(lowStockList)}" class="empty-state py-4">
+                                <i class="bi bi-box-seam"></i>
+                                <h3>Stock looks healthy</h3>
+                            </div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(lowStockList)}">
+                                <li th:each="m : ${lowStockList}">
+                                    <div>
+                                        <a class="item-title" th:href="@{/materials/{id}(id=${m.id})}" th:text="${m.name}">Material</a>
+                                        <div class="item-meta"
+                                             th:text="${m.currentQuantity} + ' ' + ${m.unit} + ' (reorder ' + ${m.reorderLevel} + ')'">qty</div>
+                                    </div>
+                                    <span class="badge-status badge-warning">Low</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card-bf h-100">
+                        <div class="card-header-bf">
+                            <h3>Notifications</h3>
+                            <a th:href="@{/notifications}" class="btn btn-sm btn-ghost">View all</a>
+                        </div>
+                        <div class="card-body-bf">
+                            <div th:if="${#lists.isEmpty(notifications)}" class="empty-state py-4">
+                                <i class="bi bi-bell"></i>
+                                <h3>You're all caught up</h3>
+                            </div>
+                            <ul class="list-compact" th:unless="${#lists.isEmpty(notifications)}">
+                                <li th:each="n : ${notifications}">
+                                    <div>
+                                        <div class="item-title" th:text="${n.title}">Title</div>
+                                        <div class="item-meta" th:text="${n.message}">Message</div>
+                                    </div>
+                                    <span th:unless="${n.readFlag}" class="badge-status badge-primary">New</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    (function () {
+        var tasks = /*[[${tasksByStatus}]]*/ {};
+        var projects = /*[[${projectsByStatus}]]*/ {};
+        var issues = /*[[${issuesBySeverity}]]*/ {};
+
+        function paint(id, map, type) {
+            var canvas = document.getElementById(id);
+            if (!canvas || typeof Chart === 'undefined' || !map) return;
+            var labels = Object.keys(map);
+            var values = labels.map(function (k) { return Number(map[k]) || 0; });
+            new Chart(canvas, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#E85D04', '#0B1F33', '#2D6A4F', '#1D4ED8', '#B45309', '#B91C1C', '#5C6B7A'].slice(0, values.length),
+                        borderWidth: type === 'doughnut' ? 2 : 0,
+                        borderColor: '#fff',
+                        borderRadius: type === 'bar' ? 6 : 0,
+                        maxBarThickness: 36
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: type === 'bar' ? 'top' : 'bottom', labels: { boxWidth: 12, usePointStyle: true } } },
+                    scales: type === 'bar' ? { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } } : undefined,
+                    cutout: type === 'doughnut' ? '62%' : undefined
+                }
+            });
+        }
+        paint('tasksChart', tasks, 'doughnut');
+        paint('projectsChart', projects, 'bar');
+        paint('issuesChart', issues, 'doughnut');
+    })();
+    /*]]>*/
+</script>
+</body>
+</html>

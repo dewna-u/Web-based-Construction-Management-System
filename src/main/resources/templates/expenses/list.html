@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Budget / Expenses')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Budget / Expenses')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header">
+                <div><h2>Budget / Expenses</h2>
+                    <p class="subtitle">Total spend: <strong th:text="${#numbers.formatDecimal(totalExpenses,1,'COMMA',2,'POINT')}">0</strong></p></div>
+                <div class="page-actions" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')">
+                    <a class="btn btn-primary" th:href="@{/expenses/new}"><i class="bi bi-plus-lg me-1"></i> Record Expense</a>
+                </div>
+            </div>
+            <div class="alert-bf warning mb-3" th:if="${budgetWarnings != null and !#lists.isEmpty(budgetWarnings)}">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <div>High budget usage:
+                    <span th:each="p,iter : ${budgetWarnings}">
+                        <a th:href="@{/expenses(projectId=${p.id})}" th:text="${p.name}"></a><span th:unless="${iter.last}">, </span>
+                    </span>
+                </div>
+            </div>
+            <form class="filter-bar row g-2 align-items-end" method="get" th:action="@{/expenses}">
+                <div class="col-md-3"><label class="form-label">Project</label>
+                    <select class="form-select" name="projectId"><option value="">All</option>
+                        <option th:each="p : ${projects}" th:value="${p.id}" th:text="${p.name}" th:selected="${projectId == p.id}"></option></select></div>
+                <div class="col-md-3"><label class="form-label">Category</label>
+                    <select class="form-select" name="category"><option value="">All</option>
+                        <option th:each="c : ${categories}" th:value="${c}" th:text="${c}" th:selected="${category == c}"></option></select></div>
+                <div class="col-md-2"><label class="form-label">From</label><input type="date" class="form-control" name="start" th:value="${start}"/></div>
+                <div class="col-md-2"><label class="form-label">To</label><input type="date" class="form-control" name="end" th:value="${end}"/></div>
+                <div class="col-md-2"><button class="btn btn-navy w-100" type="submit">Filter</button></div>
+            </form>
+            <div class="stat-grid" th:if="${projectId != null}">
+                <div class="stat-card"><div class="stat-icon orange"><i class="bi bi-cash"></i></div>
+                    <div class="stat-meta"><div class="stat-label">Project total</div><div class="stat-value" style="font-size:1.2rem" th:text="${#numbers.formatDecimal(projectTotal,1,'COMMA',2,'POINT')}"></div></div></div>
+                <div class="stat-card"><div class="stat-icon warning"><i class="bi bi-pie-chart"></i></div>
+                    <div class="stat-meta"><div class="stat-label">Budget used</div><div class="stat-value" style="font-size:1.2rem" th:text="${budgetUsagePercentage} + '%'"></div>
+                        <div class="progress-bf mt-2" th:classappend="${highBudgetUsage} ? ' danger'"><div class="bar" th:style="'width:' + ${budgetUsagePercentage} + '%'"></div></div></div></div>
+                <div class="stat-card"><div class="stat-icon success"><i class="bi bi-wallet2"></i></div>
+                    <div class="stat-meta"><div class="stat-label">Remaining</div><div class="stat-value" style="font-size:1.2rem" th:text="${#numbers.formatDecimal(budgetRemaining,1,'COMMA',2,'POINT')}"></div></div></div>
+            </div>
+            <div class="card-bf"><div class="card-body-bf p-0">
+                <div th:if="${page == null or page.content.empty}" class="empty-state"><i class="bi bi-receipt"></i><h3>No expenses</h3></div>
+                <div class="table-wrap" th:unless="${page == null or page.content.empty}">
+                    <table class="table-bf">
+                        <thead><tr><th>Date</th><th>Project</th><th>Category</th><th>Description</th><th>Amount</th><th>Ref</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="e : ${page.content}">
+                            <td th:text="${e.expenseDate}"></td>
+                            <td th:text="${e.project != null ? e.project.name : '—'}"></td>
+                            <td><span class="badge-status badge-secondary" th:text="${e.category}"></span></td>
+                            <td th:text="${e.description}"></td>
+                            <td class="fw-700" th:text="${#numbers.formatDecimal(e.amount,1,'COMMA',2,'POINT')}"></td>
+                            <td th:text="${e.reference}"></td>
+                            <td class="actions" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')">
+                                <a class="btn btn-sm btn-ghost btn-icon" th:href="@{/expenses/{id}/edit(id=${e.id})}"><i class="bi bi-pencil"></i></a>
+                                <form class="inline-form" th:action="@{/expenses/{id}/delete(id=${e.id})}" method="post" data-confirm="Delete expense?">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button class="btn btn-sm btn-danger-soft btn-icon"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer-bf" th:if="${page != null and !page.content.empty}"><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

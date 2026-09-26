@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Material Requests')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Material Requests')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="detail-hero">
+                <h1>Material request #<span th:text="${request.id}"></span></h1>
+                <div class="meta">
+                    <span th:text="${request.project != null ? request.project.name : '—'}"></span>
+                    <span th:text="${request.material != null ? request.material.name : '—'}"></span>
+                    <span class="badge-status badge-primary" th:text="${request.status}"></span>
+                </div>
+                <div class="hero-actions">
+                    <a class="btn btn-primary btn-sm" th:if="${request.status.name() == 'PENDING'}" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER','CONTRACTOR')" th:href="@{/material-requests/{id}/edit(id=${request.id})}">Edit</a>
+                    <form class="inline-form" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')" th:if="${request.status.name() == 'PENDING'}" th:action="@{/material-requests/{id}/approve(id=${request.id})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/><button class="btn btn-sm btn-primary">Approve</button></form>
+                    <form class="inline-form" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')" th:if="${request.status.name() == 'APPROVED'}" th:action="@{/material-requests/{id}/order(id=${request.id})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/><button class="btn btn-sm btn-navy">Mark ordered</button></form>
+                    <form class="inline-form" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER')" th:if="${request.status.name() == 'ORDERED'}" th:action="@{/material-requests/{id}/deliver(id=${request.id})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/><button class="btn btn-sm btn-navy">Mark delivered</button></form>
+                    <form class="inline-form" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER','CONTRACTOR')" th:action="@{/material-requests/{id}/cancel(id=${request.id})}" method="post" data-confirm="Cancel this request?">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/><button class="btn btn-sm btn-danger-soft">Cancel</button></form>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-lg-7">
+                    <div class="card-bf"><div class="card-body-bf">
+                        <div class="info-grid">
+                            <div class="info-item"><label>Quantity</label><div class="value" th:text="${request.quantity}"></div></div>
+                            <div class="info-item"><label>Request date</label><div class="value" th:text="${request.requestDate}"></div></div>
+                            <div class="info-item"><label>Required date</label><div class="value" th:text="${request.requiredDate != null ? request.requiredDate : '—'}"></div></div>
+                            <div class="info-item"><label>Requested by</label><div class="value" th:text="${request.requester != null ? request.requester.fullName : '—'}"></div></div>
+                        </div>
+                        <div class="mt-3" th:if="${request.notes}"><label class="form-label">Notes</label><p th:text="${request.notes}"></p></div>
+                        <div class="mt-3" th:if="${request.rejectionReason}"><label class="form-label">Rejection reason</label><p class="text-danger" th:text="${request.rejectionReason}"></p></div>
+                    </div></div>
+                </div>
+                <div class="col-lg-5" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')" th:if="${request.status.name() == 'PENDING'}">
+                    <div class="card-bf"><div class="card-body-bf">
+                        <h3 class="form-section-title">Reject request</h3>
+                        <form th:action="@{/material-requests/{id}/reject(id=${request.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <div class="mb-3"><label class="form-label">Reason *</label><textarea class="form-control" name="rejectionReason" rows="3" required></textarea></div>
+                            <button class="btn btn-danger-soft w-100" type="submit">Reject</button>
+                        </form>
+                    </div></div>
+                </div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

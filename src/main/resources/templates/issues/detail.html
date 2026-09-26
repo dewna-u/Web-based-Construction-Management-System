@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Issues')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Issues')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="detail-hero">
+                <h1 th:text="${issue.title}">Issue</h1>
+                <div class="meta">
+                    <span th:text="${issue.project != null ? issue.project.name : '—'}"></span>
+                    <span class="badge-status badge-danger" th:text="${issue.severity}"></span>
+                    <span class="badge-status badge-primary" th:text="${issue.status}"></span>
+                </div>
+                <div class="hero-actions">
+                    <a class="btn btn-primary btn-sm" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER')" th:href="@{/issues/{id}/edit(id=${issue.id})}">Edit</a>
+                    <form class="inline-form" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')" th:action="@{/issues/{id}/delete(id=${issue.id})}" method="post" data-confirm="Delete this issue?">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button class="btn btn-danger-soft btn-sm">Delete</button>
+                    </form>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-lg-7">
+                    <div class="card-bf mb-3"><div class="card-body-bf">
+                        <div class="info-grid mb-3">
+                            <div class="info-item"><label>Reported</label><div class="value" th:text="${issue.reportedDate}"></div></div>
+                            <div class="info-item"><label>Assignee</label><div class="value" th:text="${issue.assignedTo != null ? issue.assignedTo.fullName : 'Unassigned'}"></div></div>
+                            <div class="info-item"><label>Resolved</label><div class="value" th:text="${issue.resolvedDate != null ? issue.resolvedDate : '—'}"></div></div>
+                        </div>
+                        <label class="form-label">Description</label>
+                        <p th:text="${issue.description != null ? issue.description : 'No description'}"></p>
+                        <div th:if="${issue.resolutionNotes}"><label class="form-label">Resolution notes</label><p th:text="${issue.resolutionNotes}"></p></div>
+                    </div></div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card-bf mb-3" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')"><div class="card-body-bf">
+                        <h3 class="form-section-title">Assign</h3>
+                        <form th:action="@{/issues/{id}/assign(id=${issue.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <select class="form-select mb-3" name="assigneeId">
+                                <option value="">Unassigned</option>
+                                <option th:each="a : ${assignees}" th:value="${a.id}" th:text="${a.fullName}" th:selected="${issue.assignedTo != null and issue.assignedTo.id == a.id}"></option>
+                            </select>
+                            <button class="btn btn-navy w-100" type="submit">Update assignment</button>
+                        </form>
+                    </div></div>
+                    <div class="card-bf" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER','SITE_ENGINEER')"><div class="card-body-bf">
+                        <h3 class="form-section-title">Resolve</h3>
+                        <form th:action="@{/issues/{id}/resolve(id=${issue.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <textarea class="form-control mb-3" name="resolutionNotes" rows="3" placeholder="Resolution notes"></textarea>
+                            <button class="btn btn-primary w-100" type="submit">Mark resolved</button>
+                        </form>
+                    </div></div>
+                </div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

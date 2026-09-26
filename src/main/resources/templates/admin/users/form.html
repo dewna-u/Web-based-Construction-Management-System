@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Users (Admin)')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Users (Admin)')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header"><div><h2 th:text="${pageTitle}">User</h2></div><a class="btn btn-ghost" th:href="@{/admin/users}">Back</a></div>
+            <div class="card-bf"><div class="card-body-bf">
+                <form th:object="${userAdminForm}" th:action="${userAdminForm.id == null} ? @{/admin/users} : @{/admin/users/{id}(id=${userAdminForm.id})}" method="post" novalidate>
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/><input type="hidden" th:field="*{id}"/>
+                    <div th:if="${#fields.hasGlobalErrors()}" class="alert-bf error mb-3"><div><p class="mb-0" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p></div></div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Full name *</label><input class="form-control" th:field="*{fullName}"/><div class="field-error" th:errors="*{fullName}"></div></div>
+                        <div class="col-md-6"><label class="form-label">Email *</label><input class="form-control" th:field="*{email}"/><div class="field-error" th:errors="*{email}"></div></div>
+                        <div class="col-md-6"><label class="form-label" th:text="${userAdminForm.id == null} ? 'Password *' : 'Password (leave blank to keep)'">Password</label>
+                            <input type="password" class="form-control" th:field="*{password}"/>
+                            <div class="field-error" th:errors="*{password}"></div>
+                            <ul class="password-hints" th:if="${userAdminForm.id == null}">
+                                <li><i class="bi bi-check2"></i> At least 8 characters</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4"><label class="form-label">Role *</label>
+                            <select class="form-select" th:field="*{role}"><option th:each="r : ${roles}" th:value="${r}" th:text="${r.displayName}"></option></select></div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <div class="form-check mb-2"><input class="form-check-input" type="checkbox" th:field="*{enabled}" id="enabled"/><label class="form-check-label" for="enabled">Enabled</label></div>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2"><button class="btn btn-primary" type="submit">Save User</button><a class="btn btn-ghost" th:href="@{/admin/users}">Cancel</a></div>
+                </form>
+            </div></div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

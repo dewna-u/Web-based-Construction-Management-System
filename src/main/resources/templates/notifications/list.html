@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Notifications')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Notifications')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header">
+                <div>
+                    <h2>Notifications</h2>
+                    <p class="subtitle"><span th:text="${unreadCount}">0</span> unread</p>
+                </div>
+                <div class="page-actions">
+                    <form th:action="@{/notifications/read-all}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-outline-navy"><i class="bi bi-check2-all me-1"></i> Mark all read</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-bf"><div class="card-body-bf p-0">
+                <div th:if="${page == null or page.content.empty}" class="empty-state">
+                    <i class="bi bi-bell"></i><h3>You're all caught up</h3><p>No notifications yet.</p>
+                </div>
+                <div class="table-wrap" th:unless="${page == null or page.content.empty}">
+                    <table class="table-bf">
+                        <thead><tr><th>Title</th><th>Message</th><th>Type</th><th>When</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="n : ${page.content}" th:classappend="${!n.readFlag} ? ' fw-bold'">
+                            <td th:text="${n.title}"></td>
+                            <td th:text="${n.message}"></td>
+                            <td><span class="badge-status badge-secondary" th:text="${n.type}"></span></td>
+                            <td th:text="${#temporals.format(n.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                            <td class="actions">
+                                <form th:if="${!n.readFlag}" th:action="@{/notifications/{id}/read(id=${n.id})}" method="post" class="inline-form">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button class="btn btn-sm btn-primary" type="submit">Open</button>
+                                </form>
+                                <a th:if="${n.readFlag and n.link != null}" class="btn btn-sm btn-ghost" th:href="@{${n.link}}">Open</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer-bf" th:if="${page != null and !page.content.empty}"><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

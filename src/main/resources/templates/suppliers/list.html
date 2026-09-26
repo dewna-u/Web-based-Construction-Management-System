@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Suppliers')}"></head>
+<body>
+<div class="app-shell">
+    <div th:replace="~{fragments/layout :: sidebar}"></div>
+    <div class="app-main">
+        <div th:replace="~{fragments/layout :: navbar('Suppliers')}"></div>
+        <main class="app-content">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+
+            <div class="page-header">
+                <div><h2>Suppliers</h2><p class="subtitle"><span th:text="${activeCount}">0</span> active suppliers</p></div>
+                <div class="page-actions" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')">
+                    <a class="btn btn-primary" th:href="@{/suppliers/new}"><i class="bi bi-plus-lg me-1"></i> Add Supplier</a>
+                </div>
+            </div>
+            <form class="filter-bar row g-2 align-items-end" method="get" th:action="@{/suppliers}">
+                <div class="col-md-9"><label class="form-label">Search</label><input class="form-control" name="search" th:value="${search}"/></div>
+                <div class="col-md-3"><button class="btn btn-navy w-100" type="submit">Search</button></div>
+            </form>
+            <div class="card-bf"><div class="card-body-bf p-0">
+                <div th:if="${page == null or page.content.empty}" class="empty-state"><i class="bi bi-truck"></i><h3>No suppliers</h3></div>
+                <div class="table-wrap" th:unless="${page == null or page.content.empty}">
+                    <table class="table-bf">
+                        <thead><tr><th>Name</th><th>Contact</th><th>Phone</th><th>Email</th><th>Active</th><th></th></tr></thead>
+                        <tbody>
+                        <tr th:each="s : ${page.content}">
+                            <td><a th:href="@{/suppliers/{id}(id=${s.id})}" th:text="${s.name}"></a></td>
+                            <td th:text="${s.contactPerson}"></td>
+                            <td th:text="${s.phone}"></td>
+                            <td th:text="${s.email}"></td>
+                            <td><span class="badge-status" th:classappend="${s.active} ? ' badge-success' : ' badge-secondary'" th:text="${s.active} ? 'Active' : 'Inactive'"></span></td>
+                            <td class="actions">
+                                <a class="btn btn-sm btn-ghost btn-icon" th:href="@{/suppliers/{id}(id=${s.id})}"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-sm btn-ghost btn-icon" sec:authorize="hasAnyRole('ADMIN','PROJECT_MANAGER')" th:href="@{/suppliers/{id}/edit(id=${s.id})}"><i class="bi bi-pencil"></i></a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer-bf" th:if="${page != null and !page.content.empty}"><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+            </div>
+
+        </main>
+        <div th:replace="~{fragments/layout :: footer}"></div>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
